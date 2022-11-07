@@ -10,12 +10,12 @@ public class MustacheController {
 
     @GetMapping(value = "/hi")
     public String mustacheCon(Model model) {
-        model.addAttribute("username", "SuYeon");
+        model.addAttribute("username", "su");
         return "greetings";
     }
     @GetMapping(value = "/hi/{id}")
     public String mustacheCon2(@PathVariable String id, Model model) {
-        model.addAttribute("username", "SuYeon");
+        model.addAttribute("username", "su");
         model.addAttribute("id", id);
         return "greetings";
     }
