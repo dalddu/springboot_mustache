@@ -23,9 +23,8 @@ public class ArticleController {
         this.articleRepository = articleRepository;
     }
 
-
-    @GetMapping(value = {"/list"})
-    public String list(Model model) {
+    @GetMapping(value = {"", "/list"})
+    public String articleList(Model model) {
         List<Article> articles = articleRepository.findAll();
         model.addAttribute("articles", articles);
         return "articles/list";
@@ -33,53 +32,53 @@ public class ArticleController {
 
     @GetMapping("/{id}")
     public String selectOne(@PathVariable Long id, Model model) {
-        Optional<Article> optionalArticle = articleRepository.findById(id);
-        if (!optionalArticle.isEmpty()) {
-            model.addAttribute("article", optionalArticle.get());
+        Optional<Article> optArticle = articleRepository.findById(id);
+        if (!optArticle.isEmpty()) {
+            model.addAttribute("article", optArticle.get());
             return "articles/show";
         } else {
-            return "articles/error";
+            return "errors/error";
         }
     }
 
-    @GetMapping(value = "/new")
-    public String createArticlePage() {
-        return "articles/new";
-    }
-
     @GetMapping("/{id}/edit")
-    public String edit(@PathVariable Long id, Model model){
+    public String edit(@PathVariable Long id, Model model) {
         Optional<Article> optionalArticle = articleRepository.findById(id);
+
         if (!optionalArticle.isEmpty()) {
             model.addAttribute("article", optionalArticle.get());
             return "articles/edit";
         } else {
-            model.addAttribute("message", String.format("%d가 없습니다", id));
-            return "articles/error";
+            model.addAttribute("message", String.format("%d가 없습니다.", id));
+            return "errors/error";
         }
     }
 
-    @GetMapping("/{id}/delete")
-    public String delete(@PathVariable Long id, Model model){
-        articleRepository.deleteById(id);
-        model.addAttribute("message", String.format("id: %d이 지워졌습니다.", id));
-        return "redirect:/articles";
+    @PostMapping("/{id}/update")
+    public String update(@PathVariable Long id, ArticleDto articleDto, Model model) {
+        log.info("title: {} contents: {}", articleDto.getTitle(), articleDto.getContents());
+        Article updatedArticle = articleRepository.save(articleDto.toEntity(id));
+        model.addAttribute("article", updatedArticle);
+        return String.format("redirect:/articles/%d", updatedArticle.getId());
     }
 
-    @PostMapping(value = "/posts")
+    @GetMapping("/{id}/delete")
+    public String deleteArticle(@PathVariable Long id, Model model) {
+        articleRepository.deleteById(id);
+        return "redirect:/articles/list";
+    }
+
+    @GetMapping("/new")
+    public String createArticlePage() {
+        return "articles/new";
+    }
+
+    @PostMapping("/posts")
     public String createArticle(ArticleDto articleDto) {
         log.info(articleDto.toString());
         Article savedArticle = articleRepository.save(articleDto.toEntity());
         log.info("generatedId: {}", savedArticle.getId());
         //souf %d %s
         return String.format("redirect:/articles/%d", savedArticle.getId());
-    }
-
-    @PutMapping("/{id}")
-    public String update(@PathVariable Long id, ArticleDto articleDto, Model model){
-        log.info("title:{} content:{}", articleDto.getTitle(), articleDto.getContent());
-        Article article = articleRepository.save(articleDto.toEntity());
-        model.addAttribute("article", article);
-        return "redirect:/articles/show";
     }
 }
